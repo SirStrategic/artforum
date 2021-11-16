@@ -1,4 +1,5 @@
 # artforum
 ## to do
 
-temporary layouts needed immediantly for forum
+DO NOT TOUCH FORUM YET 
+I MUST ADD THE BACKBONE FIRST BEFORE I CAN INCORPORATE DESIGN
