@@ -1,5 +1,4 @@
 # artforum
-don't add to file structure yet i got something in mind
+*to do
 
-test2
-es
+temporary layouts needed immediantly for forum
