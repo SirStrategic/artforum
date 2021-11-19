@@ -1,0 +1,24 @@
+<html>
+<form action="/signup" method = "post">
+
+</form>
+
+<script>
+//checke verything, validate and make sure not 0 also make sure usernames are unique
+//to make sure unique make the button run this script function
+//the function in this script send a http request asking if exists, if false, the form won't be sent
+//DATA WILL BE REEVALUATED IN SERVER BEFORE BEING ENTERED INTO DATABASE
+
+var xhttp = XMLHttpRequest();
+xhtp.onreadystatechange = function(){
+if(this.readyState == 4 && this.status == 200){
+    //action
+    document.getElementById("available").innerHTML = xhttp.responseText;
+}
+xhttp.open("GET", '/usernamechecks', true);
+xhttp.send(document.getElementById("username").innerHTML);
+}
+
+</script>
+
+</html>
