@@ -1,10 +1,14 @@
 var http = require('http');
 var url = require('url');
 var fs = require('fs');
+
 var threadloader = require('./threadloader');
-var threadviewer = require('./viewer');
+//var threadviewer = require('./viewer');
 var events = require('events');
 var formidable = require('formidable');
+const express = require('express');
+const session = require('express-session');
+const app = express();
 
 http.createServer(function (req, res){
     var parsedurl = url.parse(req.url, true);
@@ -19,14 +23,56 @@ http.createServer(function (req, res){
           res.write('File uploaded');
           console.log("message posted");
           res.end();
-        });
+        }); //??????????????????????
 
     }else if(req.url == '/'){
         res.writeHead(302, {'Location': './forumIndex.html'});
           res.end();
     }else if(req.url == '/usernamechecks'){
+        //TEMPORARY TEST
+         res.writeHead(201, {'Content-Type': 'text/html'});
+
+         let data = '';
+         req.on('data', chunk => {
+           data += chunk;
+         })
+         req.on('end', () => {
+           //res.write("message recieved:" + data);
+
+                result = false;//false means username good to go
+            try{
+               result = threadloader.checkIfUserExists(data);//idk what the return type is lol printout is yellow so prob real bool but whatever
+               console.log(result);
+               result = (result=="true");
+               console.log(result);
+               //console.log(threadloader.checkIfUserExists(data));
+            }catch(err){
+                console.log("ummmmmmmm" + err instanceof ReferenceError);//give all these proper names
+               result = true; //true means it exists or is not allowed
+           };
+           if(result)
+           res.write(data + "cannot be used, it either already exists, contains dissalowed characters, or is too long (unlikley).");
+           else
+           res.write(data + "is a valid, currently unused username");
+
+
+           res.end();
+         })
+
+
+         
+    }else if(req.url == '/login'){
          res.writeHead(200, {'Content-Type': 'text/html'});
-         res.write("message recieved:" + req.read());
+         app.use(session({secret:"hush hush"}));
+         let body = [];
+         request.on('error', (err) => {
+                console.error(err);
+            }).on('data', (chunk) => {
+                 body.push(chunk);
+             }).on('end', () => {
+                 body = Buffer.concat(body).toString();
+                }); 
+         console.log(body);
          res.end();
     }else{
     fs.readFile(urlfilereq, function (err, data) {
@@ -67,7 +113,7 @@ function createuser(name, hashedpswrd){};
 
 
 
-x
+
 /*
 var mysql = require('mysql');
 

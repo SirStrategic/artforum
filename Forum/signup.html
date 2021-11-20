@@ -3,22 +3,56 @@
 
 </form>
 
+
 <script>
 //checke verything, validate and make sure not 0 also make sure usernames are unique
 //to make sure unique make the button run this script function
 //the function in this script send a http request asking if exists, if false, the form won't be sent
 //DATA WILL BE REEVALUATED IN SERVER BEFORE BEING ENTERED INTO DATABASE
 
-var xhttp = XMLHttpRequest();
-xhtp.onreadystatechange = function(){
-if(this.readyState == 4 && this.status == 200){
-    //action
-    document.getElementById("available").innerHTML = xhttp.responseText;
-}
-xhttp.open("GET", '/usernamechecks', true);
-xhttp.send(document.getElementById("username").innerHTML);
+function check(){
+    sendcheck("http://localhost:8080/usernamechecks",document.getElementById("username").value);
 }
 
+//that's some fancy js
+//https://www.w3schools.com/js/js_api_fetch.asp
+async function sendcheck(to, usernametocheck) { //why does it need the identifier
+  let response = await fetch(to,{method:"Post",headers:{'Content-Type': 'text/html'},body:usernametocheck}); //this why?
+  let result = await response.text();
+  console.log(result);
+  document.getElementById("okayquestionmark").innerHTML = result.toString();
+}
+
+//const xhttp = new XMLHttpRequest();
+
+//xhttp.onload = function(){
+
+
+//}
+
+///function check(){
+   // xhttp.open("POST", );
+    //xhttp.send();
+//}
+
+//xhttp.onreadystatechange = function(){
+//if(this.readyState == 4 && this.status == 200){
+    
+    //action
+    
+//};
+
+//};
+//};
+
+
+
 </script>
+test for now
+keep name shorter than 17 characters and it may not contain special characters
+<label id = "okayquestionmark"></label>
+    <input type="text" id="username" maxlength = "16"></input><br><br>
+    <button id="checktemp" onclick="check()">check</button>
+
 
 </html>
