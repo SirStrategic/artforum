@@ -42,21 +42,26 @@ http.createServer(function (req, res){
                 result = false;//false means username good to go
             try{
                result = threadloader.checkIfUserExists(data);//idk what the return type is lol printout is yellow so prob real bool but whatever
-               console.log(result);
-               result = (result=="true");
-               console.log(result);
+               console.log("recieved result" + result);
+               //result = (result=="true");
+               //console.log(result);
                //console.log(threadloader.checkIfUserExists(data));
             }catch(err){
                 console.log("ummmmmmmm" + err instanceof ReferenceError);//give all these proper names
                result = true; //true means it exists or is not allowed
            };
-           if(result)
-           res.write(data + "cannot be used, it either already exists, contains dissalowed characters, or is too long (unlikley).");
-           else
-           res.write(data + "is a valid, currently unused username");
-
-
-           res.end();
+           result.then(
+            function(result) { if(result)
+                res.write(data + "cannot be used, it either already exists, contains dissalowed characters, or is too long (unlikley).");
+                else
+                res.write(data + "is a valid, currently unused username");
+                res.end();
+            },function(error) { 
+                res.write("Error has occured, please contact server administrator " + error);
+                res.end();
+            }
+          );
+           
          })
 
 
