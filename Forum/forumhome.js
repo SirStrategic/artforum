@@ -8,6 +8,7 @@ var events = require('events');
 var formidable = require('formidable');
 const express = require('express');
 const session = require('express-session');
+const { response } = require('express');
 const app = express();
 
 http.createServer(function (req, res){
@@ -30,7 +31,7 @@ http.createServer(function (req, res){
           res.end();
     }else if(req.url == '/usernamechecks'){
         //TEMPORARY TEST
-         res.writeHead(201, {'Content-Type': 'text/html'});
+         
 
          let data = '';
          req.on('data', chunk => {
@@ -38,11 +39,14 @@ http.createServer(function (req, res){
          })
          req.on('end', () => {
            //res.write("message recieved:" + data);
-
-                result = false;//false means username good to go
+           res.writeHead(201, {'Content-Type': 'application/json'});
+           let responsejsontest = "{\"bad\": true,\"message\":\"something went wrong\"}";//do I have to initialise?
+           let responsejson = JSON.parse(responsejsontest);
+                result = true;//false means username good to go
+                
             try{
                result = threadloader.checkIfUserExists(data);//idk what the return type is lol printout is yellow so prob real bool but whatever
-               console.log("recieved result" + result);
+               //console.log("recieved result" + result);
                //result = (result=="true");
                //console.log(result);
                //console.log(threadloader.checkIfUserExists(data));
@@ -50,14 +54,25 @@ http.createServer(function (req, res){
                 console.log("ummmmmmmm" + err instanceof ReferenceError);//give all these proper names
                result = true; //true means it exists or is not allowed
            };
+           
+
+           //oop I think I used confusing names here outer result is promise and inner is bool
            result.then(
-            function(result) { if(result)
-                res.write(data + "cannot be used, it either already exists, contains dissalowed characters, or is too long (unlikley).");
-                else
-                res.write(data + "is a valid, currently unused username");
+            function(result) { if(result){
+                responsejson.bad = result;
+                responsejson.message = data + " cannot be used, it either already exists, contains dissalowed characters, or is too long (unlikley).";
+                res.write(JSON.stringify(responsejson));
                 res.end();
+            }else{
+                responsejson.bad = result;
+                responsejson.message = data + " is a valid, currently unused username";
+                res.write(JSON.stringify(responsejson));
+                res.end();
+            }
             },function(error) { 
-                res.write("Error has occured, please contact server administrator " + error);
+                esponsejson.bad = true;
+                responsejson.message = "Error has occured, please contact server administrator " + error;
+                res.write(JSON.stringify(responsejson));
                 res.end();
             }
           );
