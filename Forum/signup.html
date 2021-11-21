@@ -1,7 +1,5 @@
 <html>
-<form action="/signup" method = "post">
 
-</form>
 
 
 <script>
@@ -10,9 +8,16 @@
 //the function in this script send a http request asking if exists, if false, the form won't be sent
 //DATA WILL BE REEVALUATED IN SERVER BEFORE BEING ENTERED INTO DATABASE
 
-function check(){
-    sendcheck("http://localhost:8080/usernamechecks",document.getElementById("username").value);
+var validated = false; //I'll tell you now,don't get your hopes up, this isn't the actual varification variable, you can't double up usernames
+//make part of larger function
+
+
+
+function check(id){
+    sendcheck("http://localhost:8080/usernamechecks",document.getElementById(id).value);
 }
+
+document.getElementById("username").onchange = check("username");
 
 //that's some fancy js
 //https://www.w3schools.com/js/js_api_fetch.asp
@@ -22,6 +27,7 @@ async function sendcheck(to, usernametocheck) { //why does it need the identifie
   //console.log(result);
   let parsedresult = JSON.parse(result);
   document.getElementById("okayquestionmark").innerHTML = parsedresult.message;
+  return parsedresult.bad;
   //console.log(response.text());
   //console.log(result);
   //console.log(parsedresult);
@@ -30,13 +36,74 @@ async function sendcheck(to, usernametocheck) { //why does it need the identifie
 }
 
 
+//if you tamper with these you may never be able to log into that account and I won't be able to help you
+
+// source: http://stackoverflow.com/a/11058858
+function str2ab(str) {
+    var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
+    var bufView = new Uint8Array(buf);
+    for (var i = 0, strLen = str.length; i < strLen; i++) {
+      bufView[i] = str.charCodeAt(i);
+    }
+    return buf;
+  }
+
+  // source: http://stackoverflow.com/a/11058858
+function ab2str(buf) {
+    return String.fromCharCode.apply(null, new Uint16Array(buf));
+  }
+
+async function hash(data){
+    
+}
+
+function sendform(){ //'form' lol
+//account security note: can be edited so different username is sent than what was checked, shouldn't be an issue because all is recheched on other server
+//although the original dude should have no issue because the database should check only the first result for names idk if i've even designed that sytem yet tho xD
+//async so strange
+//https://stackoverflow.com/questions/47227550/using-await-inside-non-async-function
+//^ explanation to clarify abit if u ever need
+//hello future pickle
+//lol there is 0 error handling here of any kind
+    let username = document.getElementById("username").value
+    let password = document.getElementById("password").value
+
+
+
+    const usernamegood = sendcheck("http://localhost:8080/signup", username);
+    usernamegood.then(result => {//idk if I have to put it in or not, stackoverflow answer seems to suggest that await is equal to this so this should be fine
+        const digest = crypto.subtle.digest('SHA-256', str2ab(password + "v7ArvELs"));
+        digest.then(result2 =>{
+            //send form
+
+            let requestjsontext = "{\"username\":"+username+",\"password\":"+password+"}";//do I have to initialise?
+           let requestjson = JSON.parse(requestjsontext);
+
+            let response = fetch(to,{method:"Post",headers:{'Content-Type': 'application/json'},body:requestjson});
+            response.then(result3=>{
+                console.log("form should have been sent:" + result3); //will be designed to respond with success
+            })
+        });
+    });
+
+    
+}
+
 
 </script>
-test for now
-keep name shorter than 17 characters and it may not contain special characters
-<label id = "okayquestionmark"></label>
-    <input type="text" id="username" maxlength = "16"></input><br><br>
-    <button id="checktemp" onclick="check()">check</button>
 
+
+test for now<br>
+Keep name shorter than 17 characters, it may not contain special characters. <br>
+<label id = "okayquestionmark" style = "color:rgb(168, 9, 9)"></label><br>
+    <input type="text" id="username" onclick="check()" maxlength = "16"></input><br>
+    <input type="password" id="password" maxlength = "512"></input><br>
+    #<button id="checktemp" >check</button>
+
+    <form action="/na" method = "post">
+
+    
 
 </html>
+//alert before allowing to create account
+//once signed in let them know that if their request is valid it will be processed, their account should be active within the minuit assuming all is well

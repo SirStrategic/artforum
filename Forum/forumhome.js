@@ -2,13 +2,14 @@ var http = require('http');
 var url = require('url');
 var fs = require('fs');
 
+//dependances so far
+//mysql
+//shit I forgot
+
 var threadloader = require('./threadloader');
 //var threadviewer = require('./viewer');
 var events = require('events');
 var formidable = require('formidable');
-const express = require('express');
-const session = require('express-session');
-const { response } = require('express');
 const app = express();
 
 http.createServer(function (req, res){
@@ -17,6 +18,7 @@ http.createServer(function (req, res){
     //    parsedurl.pathname = "INVALID";
     //}
     var urlfilereq = "." + parsedurl.pathname;
+    //
     
     if (req.url == '/fileupload') {
         var form = new formidable.IncomingForm();
@@ -36,7 +38,7 @@ http.createServer(function (req, res){
          let data = '';
          req.on('data', chunk => {
            data += chunk;
-         })
+         });
          req.on('end', () => {
            //res.write("message recieved:" + data);
            res.writeHead(201, {'Content-Type': 'application/json'});
@@ -77,22 +79,27 @@ http.createServer(function (req, res){
             }
           );
            
-         })
+         });
 
 
          
-    }else if(req.url == '/login'){
+    }else if(req.url == '/signup'){
          res.writeHead(200, {'Content-Type': 'text/html'});
-         app.use(session({secret:"hush hush"}));
-         let body = [];
-         request.on('error', (err) => {
-                console.error(err);
-            }).on('data', (chunk) => {
-                 body.push(chunk);
-             }).on('end', () => {
-                 body = Buffer.concat(body).toString();
-                }); 
-         console.log(body);
+        //todo: do preliminary tests make sure message recieved
+        let data = '';
+         req.on('data', chunk => {
+           data += chunk;
+         });
+         req.on('end', () => {
+            console.log(data);
+         });
+
+        
+
+         //unpack json
+         //verify username
+         //rehash password
+         //submit to database
          res.end();
     }else{
     fs.readFile(urlfilereq, function (err, data) {
