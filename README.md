@@ -1,8 +1,9 @@
 # artforum
 
-DO NOT TOUCH FORUM YET 
-I MUST ADD THE BACKBONE FIRST BEFORE I CAN INCORPORATE DESIGN
+## Notes
 
-## to do
+## Todo
+
+
 
 
