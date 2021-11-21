@@ -112,7 +112,7 @@ return await new Promise(resolve => setTimeout(()=>{
         if (err) throw err;
         
       qstring = "select username from users where username = \"" + username + "\"";
-      console.log(qstring);
+      //console.log(qstring);
       
      connection.query(qstring, function(err, result){
          
@@ -124,11 +124,11 @@ return await new Promise(resolve => setTimeout(()=>{
           //console.log(result[0].username.length);
           var tempresult = true;
        if(result.length > 0/*result[0].username == username this throws sticky errors idk not bothered to do some ez fix lol*/){
-          console.log("aaaaa");
+          //console.log("aaaaa");
 
           tempresult = true; //wait shit but how does it know what the index is ahhhhhhhhhhhhh
         }else{//returnval is undefined therefore so is returnvalbuffer
-            console.log("aa22222aaa");
+            //console.log("aa22222aaa");
             tempresult  = false;
         }
         }catch(e){//catch all just to be safe

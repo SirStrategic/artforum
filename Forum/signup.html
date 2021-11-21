@@ -18,32 +18,16 @@ function check(){
 //https://www.w3schools.com/js/js_api_fetch.asp
 async function sendcheck(to, usernametocheck) { //why does it need the identifier
   let response = await fetch(to,{method:"Post",headers:{'Content-Type': 'text/html'},body:usernametocheck}); //this why?
-  let result = await response.text();
-  console.log(result);
-  document.getElementById("okayquestionmark").innerHTML = result.toString();
+  let result = await response.text();//why does this have to be async
+  //console.log(result);
+  let parsedresult = JSON.parse(result);
+  document.getElementById("okayquestionmark").innerHTML = parsedresult.message;
+  //console.log(response.text());
+  //console.log(result);
+  //console.log(parsedresult);
+  //console.log(parsedresult.message);
+  //console.log(parsedresult.bad);
 }
-
-//const xhttp = new XMLHttpRequest();
-
-//xhttp.onload = function(){
-
-
-//}
-
-///function check(){
-   // xhttp.open("POST", );
-    //xhttp.send();
-//}
-
-//xhttp.onreadystatechange = function(){
-//if(this.readyState == 4 && this.status == 200){
-    
-    //action
-    
-//};
-
-//};
-//};
 
 
 
