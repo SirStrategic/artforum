@@ -1,8 +1,12 @@
 # artforum
+<br>
+<br>
+## Notes
 
-DO NOT TOUCH FORUM YET 
-I MUST ADD THE BACKBONE FIRST BEFORE I CAN INCORPORATE DESIGN
+Pleasn't don't touch forumyet
 
 ## to do
+
+
 
 
