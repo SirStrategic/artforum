@@ -1,6 +1,4 @@
 # artforum
-<br>
-<br>
 
 ## Notes
 
