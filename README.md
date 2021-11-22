@@ -7,6 +7,10 @@ Clientside salt: v7ArvELs
 
 ## Todo
 
+Add this to forum (totaly not ripped from id):
+• Do not post any obscene material. (i.e. - nudity, explicit graphic situations ... etc.)
+• Put a viewer discretion somewhere in your topic title / description when posting topic(s) that others might find offensive. (i.e. - Not Work Safe, PG13 ... etc.)
+
 
 
 
