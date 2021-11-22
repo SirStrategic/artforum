@@ -1,6 +1,16 @@
 <html>
-
-
+    Keep name shorter than 17 characters, it may not contain special characters. <br>
+    <label id = "okayquestionmark" style = "color:rgb(168, 9, 9)">Please enter a username for it to be checked for originality</label><br>
+        Username:<input type="text" id="username" maxlength = "16" onchange = "check()"></input><br>
+        <!--<button id="checktemp" onclick = "check()">check</button><br>-->
+        Password:<input type="password" id="password" maxlength = "512"></input><br>
+        <br>Your Account will only be created if it has a unique username<br>
+        <button id="send" onclick = "sendform()">Submit </button><br>
+        <label id = "formsubmitted" style = "color:rgb(168, 9, 9)">After Submitting please wait</label>
+        
+</html>
+    <!--alert before allowing to create account
+    //once signed in let them know that if their request is valid it will be processed, their account should be active within the minuit assuming all is well-->
 
 <script>
 //checke verything, validate and make sure not 0 also make sure usernames are unique
@@ -13,11 +23,14 @@ var validated = false; //I'll tell you now,don't get your hopes up, this isn't t
 
 
 
-function check(id){
-    sendcheck("http://localhost:8080/usernamechecks",document.getElementById(id).value);
+function check(id = 'username'){
+    console.log("got here");
+    console.log(document.getElementById(id).value);
+    sendcheck("http://localhost:8080/usernamechecks", document.getElementById(id).value);
 }
 
-document.getElementById("username").onchange = check("username");
+//document.getElementById("username").onchange = check("username");
+//document.getElementById("checktemp").onclick = check("username");
 
 //that's some fancy js
 //https://www.w3schools.com/js/js_api_fetch.asp
@@ -26,7 +39,8 @@ async function sendcheck(to, usernametocheck) { //why does it need the identifie
   let result = await response.text();//why does this have to be async
   //console.log(result);
   let parsedresult = JSON.parse(result);
-  document.getElementById("okayquestionmark").innerHTML = parsedresult.message;
+  document.getElementById("okayquestionmark").innerText = parsedresult.message;
+  console.log("checksent");
   return parsedresult.bad;
   //console.log(response.text());
   //console.log(result);
@@ -35,6 +49,8 @@ async function sendcheck(to, usernametocheck) { //why does it need the identifie
   //console.log(parsedresult.bad);
 }
 
+//regarding future expantion of encryption keys let if no key provided, it will default to waht is being used here, or I just put this key in lol prob do that
+//also in future, give moderator controll, change state of wether a message is vissable
 
 //if you tamper with these you may never be able to log into that account and I won't be able to help you
 
@@ -53,10 +69,7 @@ function ab2str(buf) {
     return String.fromCharCode.apply(null, new Uint16Array(buf));
   }
 
-async function hash(data){
-    
-}
-
+//I just fucking realised hashing here would only like delay an attacker by a few minutes
 function sendform(){ //'form' lol
 //account security note: can be edited so different username is sent than what was checked, shouldn't be an issue because all is recheched on other server
 //although the original dude should have no issue because the database should check only the first result for names idk if i've even designed that sytem yet tho xD
@@ -68,23 +81,34 @@ function sendform(){ //'form' lol
     let username = document.getElementById("username").value
     let password = document.getElementById("password").value
 
+    console.log("username: " + username);
+    console.log("password: " + password);
+
+    //check if values non empty
 
 
-    const usernamegood = sendcheck("http://localhost:8080/signup", username);
+
+    const usernamegood = sendcheck("http://localhost:8080/usernamechecks", username);//I changed this from signupform and nothing changed.... um
+    console.log(usernamegood);
     usernamegood.then(result => {//idk if I have to put it in or not, stackoverflow answer seems to suggest that await is equal to this so this should be fine
-        const digest = crypto.subtle.digest('SHA-256', str2ab(password + "v7ArvELs"));
+       //also actual check made on server
+       if(result == false){
+        const digest = crypto.subtle.digest('SHA-256', str2ab(password + "v7ArvELs"));//< this is clientside hash, serverside will have it's own hash, thought it doesn't realy matter tho lol xD
         digest.then(result2 =>{
             //send form
-
-            let requestjsontext = "{\"username\":"+username+",\"password\":"+password+"}";//do I have to initialise?
+            console.log("atleast you got this far");
+            let requestjsontext = "{\"username\":\"" + username + "\",\"password\":\""+password+"\"}";//do I have to initialise?
            let requestjson = JSON.parse(requestjsontext);
 
-            let response = fetch(to,{method:"Post",headers:{'Content-Type': 'application/json'},body:requestjson});
+            let response = fetch("http://localhost:8080/signupform",{method:"Post",headers:{'Content-Type': 'application/json'},body:requestjson});
             response.then(result3=>{
                 console.log("form should have been sent:" + result3); //will be designed to respond with success
+                document.getElementById("formsubmitted").innerText = "Your account creation request has probably sent and recieved ¯\\_(ツ)_/¯"
             })
         });
+        }   
     });
+
 
     
 }
@@ -93,17 +117,4 @@ function sendform(){ //'form' lol
 </script>
 
 
-test for now<br>
-Keep name shorter than 17 characters, it may not contain special characters. <br>
-<label id = "okayquestionmark" style = "color:rgb(168, 9, 9)"></label><br>
-    <input type="text" id="username" onclick="check()" maxlength = "16"></input><br>
-    <input type="password" id="password" maxlength = "512"></input><br>
-    #<button id="checktemp" >check</button>
 
-    <form action="/na" method = "post">
-
-    
-
-</html>
-//alert before allowing to create account
-//once signed in let them know that if their request is valid it will be processed, their account should be active within the minuit assuming all is well
