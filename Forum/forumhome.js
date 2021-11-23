@@ -10,6 +10,7 @@ var threadloader = require('./threadloader');
 //var threadviewer = require('./viewer');
 var events = require('events');
 var formidable = require('formidable');
+const { json } = require('body-parser');
 
 http.createServer(function (req, res){
     var parsedurl = url.parse(req.url, true);
@@ -91,18 +92,39 @@ http.createServer(function (req, res){
          });
          req.on('end', () => {
             console.log("aaaaaaaaaaaaaaaaaaaaaa"+data);
-            res.write("recieved");
-            res.end();
-         });
+            //no need to parse?
+            userinfo = JSON.parse(data);
+            //console.log("username recieved: " + data.username + "  password  recieved: " + data.password);
+            
+            //console.log("username recieved: " + userinfo.username + "  password  recieved: " + userinfo.password);
+            
+            
+         
+         //account will not be entered into database if name duplicate, this is handled serverside
 
         
 
          //unpack json
-         //verify username
-         //rehash password
+         //verify username      no need
+         //rehash password      
          //submit to database
          //idk if I even need this here, might even thow an error lol
+
+         prom = threadloader.adduser();
+
+         prom.then(result => {
+
+         }, error => {
+
+         });
+
          res.end();
+        });
+        res.end();
+        }else if(req.url == "/thread"){
+            //https://www.w3schools.com/nodejs/nodejs_http.asp
+            //
+            //do not allow whitespace in table names 
     }else{
         fs.readFile(urlfilereq, function (err, data) {
         //IMPORTANT QUESTION: can these files be requested in any other way? 

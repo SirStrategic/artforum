@@ -105,7 +105,7 @@ exports.checkIfUserExists = async function (username){
         database: "server"
     });
 
-return await new Promise(resolve => setTimeout(()=>{
+return await new Promise(resolve =>{
 
 
     connection.connect(function(err){ //god I wish js had pointers/references
@@ -139,9 +139,44 @@ return await new Promise(resolve => setTimeout(()=>{
       });   
     });
     
-},2000));
+});
 }
 
+
+
+
+
+
+
+
+
+exports.adduser = async function (username, hashedpassword, salt){
+    
+ 
+    var connection = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "uS:qwv?3btR!cdL",
+        database: "server"
+    });
+
+return await new Promise(resolve => {
+
+    connection.connect(function(err){ //god I wish js had pointers/references
+        if (err) throw err;
+        
+      qstring = "use server\; Insert into users (uid, username, hashed, salt, joined, lastcreatedthread) Values (null,\'" + username + "\',\'"+ hashedpassword +"\',\'"+ salt +"\', now(), now());";
+      //console.log(qstring);
+      
+     connection.query(qstring, function(err, result){
+         
+         
+        resolve(true);
+      });   
+    });
+    
+});
+}
 
 
 
