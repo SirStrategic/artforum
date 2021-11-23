@@ -4,7 +4,9 @@ var fs = require('fs');
 
 //dependances so far
 //mysql
-//shit I forgot
+//bcrypt
+//formidable
+
 
 var threadloader = require('./threadloader');
 //var threadviewer = require('./viewer');
@@ -91,12 +93,12 @@ http.createServer(function (req, res){
            data += chunk;
          });
          req.on('end', () => {
-            console.log("aaaaaaaaaaaaaaaaaaaaaa"+data);
+            //console.log("aaaaaaaaaaaaaaaaaaaaaa"+data);
             //no need to parse?
             userinfo = JSON.parse(data);
             //console.log("username recieved: " + data.username + "  password  recieved: " + data.password);
             
-            //console.log("username recieved: " + userinfo.username + "  password  recieved: " + userinfo.password);
+            console.log("username recieved: " + userinfo.username + "  password  recieved: " + userinfo.password);
             
             
          
