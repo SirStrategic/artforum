@@ -5,6 +5,9 @@ IMPORTANT DO NOT USE .InnerHTML instead use .InnerText unless you have a very go
 
 Clientside salt: v7ArvELs
 
+add the below code to every page you write in the head
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
 ## Todo
 
 Add this to forum (totaly not ripped from id):<br>
