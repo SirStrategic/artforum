@@ -143,6 +143,62 @@ return await new Promise(resolve =>{
 }
 
 
+exports.checkIfThreadExists = async function (threadname){
+    
+    var format = "[ `!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?~]";
+    for(i = 0; i<format.length; i++){
+        if(threadname.indexOf(format[i]) > -1){
+            return true;
+        }
+    }
+    
+    if(threadname.length > 16){
+    return true;
+    }
+
+    var connection = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "uS:qwv?3btR!cdL",
+        database: "server"
+    });
+
+return await new Promise(resolve =>{
+
+
+    connection.connect(function(err){ //god I wish js had pointers/references
+        if (err) throw err;
+        
+      qstring = "select threadName from threads where threadName = \"" + threadname + "\"";
+      //console.log(qstring);
+      
+     connection.query(qstring, function(err, result){
+         
+          if(err){
+              Console.log("CRITICAL ERROR, threadloader.js, checkIfThreadExists(), QUERY FAILED, REQUIRES IMEDIATE ATTENTION");
+              throw err;
+            }  
+        try{
+          //console.log(result[0].username.length);
+          var tempresult = true;
+       if(result.length > 0/*result[0].username == username this throws sticky errors idk not bothered to do some ez fix lol*/){
+          //console.log("aaaaa");
+
+          tempresult = true; //wait shit but how does it know what the index is ahhhhhhhhhhhhh
+        }else{//returnval is undefined therefore so is returnvalbuffer
+            //console.log("aa22222aaa");
+            tempresult  = false;
+        }
+        }catch(e){//catch all just to be safe
+            console.log("error occured" + e);
+            tempresult   = true;
+        }
+        resolve(tempresult);
+      });   
+    });
+    
+});
+}
 
 
 
@@ -150,7 +206,9 @@ return await new Promise(resolve =>{
 
 
 
-exports.adduser = async function (username, hashedpassword, salt){
+
+
+exports.adduser = async function (username, hashedpassword, salt, rounds){
     
  
     var connection = mysql.createConnection({
@@ -160,22 +218,87 @@ exports.adduser = async function (username, hashedpassword, salt){
         database: "server"
     });
 
-return await new Promise(resolve => {
+return await new Promise(resolve => { 
 
-    connection.connect(function(err){ //god I wish js had pointers/references
+    connection.connect(function(err){ 
         if (err) throw err;
         
-      qstring = "use server\; Insert into users (uid, username, hashed, salt, joined, lastcreatedthread) Values (null,\'" + username + "\',\'"+ hashedpassword +"\',\'"+ salt +"\', now(), now());";
+      qstring = "Insert into users (uid,username,hashed,salt,rounds,joined,lastcreatedthread) Values (null,\'" + username + "\',\'"+ hashedpassword +"\',\'"+ salt +"\', "+ rounds +", UTC_TIMESTAMP(), \'2000-01-01 00:00:00\');"; //u can use default if u need
+      //qstring = "use server\; Insert into users (uid, username, hashed, salt, rounds, joined, lastcreatedthread ) Values (null, 'testuser1347', 'hashh', 'salt', 10, UTC_TIMESTAMP(), UTC_TIMESTAMP());";
       //console.log(qstring);
       
-     connection.query(qstring, function(err, result){
-         
+      //console.log("user created:" + username);
+      connection.query(qstring, function(err, result){
+         //console.log(err);
+         //check for err how?
          
         resolve(true);
       });   
     });
     
 });
+}
+
+exports.requestoverview = function(offset){
+
+    var connection = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "uS:qwv?3btR!cdL",
+        database: ""
+    });
+
+    return new Promise(resolve=>{
+        connection.connect(function(err){ 
+            if (err) throw err;
+            
+          qstring = ""; 
+
+          connection.query(qstring, function(err, result){
+            resolve(true);
+          });   
+        });
+    });
+}
+
+exports.createforum = async function(uid,threadname){
+
+    var connection = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "uS:qwv?3btR!cdL",
+        database: "server"
+    });
+
+    connection.connect(function(err){ 
+        if (err) throw err;
+
+    //check if user has made a thread in the last 5 mins
+    
+        if (err) throw err;
+                
+        qstring = "use server\; select lastcreatedthread from users where uid = "+uid+";"; 
+    
+        connection.query(qstring, function(err, result){
+            console.log(result);
+            //do check here to see if to return function
+        });   
+            
+    });
+    
+    
+
+    //return false;
+
+    //check if thread already exists or is otherwise invalid
+   var invalid = checkIfThreadExists(threadname);
+
+   if(invalid){
+       return false;
+   }
+
+   //create thread in threads table then add thread table
+
 }
 
 
