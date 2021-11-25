@@ -6,6 +6,10 @@ var fs = require('fs');
 //mysql
 //bcrypt
 //formidable
+//npm install -g node-gyp
+
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 
 var threadloader = require('./threadloader');
@@ -32,8 +36,57 @@ http.createServer(function (req, res){
 
     }else if(req.url == '/'){
         res.writeHead(302, {'Location': './forumIndex.html'});
-          res.end();
+        res.end();
+    }else if(req.url == '/threadnamechecks'){
+
+        let data = '';
+        req.on('data', chunk => {
+          data += chunk;
+        });
+        req.on('end', () => {
+          //res.write("message recieved:" + data);
+          res.writeHead(201, {'Content-Type': 'application/json'});
+          let responsejsontest = "{\"bad\": true,\"message\":\"something went wrong\"}";//do I have to initialise?
+          let responsejson = JSON.parse(responsejsontest);
+               result = true;//false means username good to go
+               
+           try{
+              result = threadloader.checkIfThreadExists(data);//idk what the return type is lol printout is yellow so prob real bool but whatever
+              //here result is a promise
+              //console.log("-----first-----"+typeof(result)+"----------------");
+              //console.log("check requested through /usernamechecks, recieved result" + result);
+              //result = (result=="true");
+              //console.log(result);
+              //console.log(threadloader.checkIfUserExists(data));
+           }catch(err){
+               console.log("ummmmmmmm" + err instanceof ReferenceError);//give all these proper names
+              result = true; //true means it exists or is not allowed
+          };
+          
+          result.then(
+           function(result) { if(result){
+               responsejson.bad = result;
+               responsejson.message = data + " cannot be used, it either already exists, contains dissalowed characters, or is too long (unlikley).";
+               res.write(JSON.stringify(responsejson));
+               res.end();
+           }else{
+               responsejson.bad = result;
+               responsejson.message = "[" + data + "]" + " is a valid, currently unused threadname";
+               res.write(JSON.stringify(responsejson));
+               res.end();
+           }
+           },function(error) { 
+               responsejson.bad = true;
+               responsejson.message = "Error has occured, please contact server administrator " + error;
+               res.write(JSON.stringify(responsejson));
+               res.end();
+           }
+         );
+          
+        });
+
     }else if(req.url == '/usernamechecks'){
+    
         
          
 
@@ -47,10 +100,10 @@ http.createServer(function (req, res){
            let responsejsontest = "{\"bad\": true,\"message\":\"something went wrong\"}";//do I have to initialise?
            let responsejson = JSON.parse(responsejsontest);
                 result = true;//false means username good to go
-                
+                //console.log("-----first-----"+typeof(result)+"----------------");
             try{
                result = threadloader.checkIfUserExists(data);//idk what the return type is lol printout is yellow so prob real bool but whatever
-               console.log("check requested through /usernamechecks, recieved result" + result);
+               //console.log("check requested through /usernamechecks, recieved result" + result);
                //result = (result=="true");
                //console.log(result);
                //console.log(threadloader.checkIfUserExists(data));
@@ -61,6 +114,12 @@ http.createServer(function (req, res){
            
 
            //oop I think I used confusing names here outer result is promise and inner is bool
+           //wait that can't be what
+           //how is this result a promise, checkifuserexists function should await before returning
+           //async functions always return promise
+           //so idk how that thing in the try statemnt works but
+           //console.log("----------"+typeof(result)+"----------------");
+           //lol probably thinking of wrong "outer" and "inner" nice one mate
            result.then(
             function(result) { if(result){
                 responsejson.bad = result;
@@ -98,12 +157,21 @@ http.createServer(function (req, res){
             userinfo = JSON.parse(data);
             //console.log("username recieved: " + data.username + "  password  recieved: " + data.password);
             
-            console.log("username recieved: " + userinfo.username + "  password  recieved: " + userinfo.password);
+            //console.log("username recieved: " + userinfo.username + "  password  recieved: " + userinfo.password);
             
-            
+            //is this async idk, prob doesn't matter because this node server might run async idk lol
+            const salt = bcrypt.genSaltSync(saltRounds);
+            const hash = bcrypt.hashSync(userinfo.password, salt);
+
+            storehash = hash.slice(-31);
+            storesalt = hash.slice(-53,-31);
+                   // console.log(storehash);
+                   // console.log(storesalt);
+                    // Store hash in your password DB.
+              
          
          //account will not be entered into database if name duplicate, this is handled serverside
-
+         //^because username is a UNIQUE property
         
 
          //unpack json
@@ -112,7 +180,9 @@ http.createServer(function (req, res){
          //submit to database
          //idk if I even need this here, might even thow an error lol
 
-         prom = threadloader.adduser();
+         prom = threadloader.adduser(userinfo.username, storehash, storesalt, saltRounds); 
+         //this is kinda inneficient, since i'm asking it to hash before I even know if username's a duplicate
+         //although only chance it'd get through to here is if it passes form by hax
 
          prom.then(result => {
 
@@ -123,14 +193,53 @@ http.createServer(function (req, res){
          res.end();
         });
         res.end();
-        }else if(req.url == "/thread"){
+        }else if(req.url == '/createthreadform'){
+
+            let data = '';
+            req.on('data', chunk => {
+              data += chunk;
+            });
+            req.on('end', () => {
+                //json:threadname, username, password
+                
+                //authenticate user
+                //retrieve salt
+                //retrieve rounds
+                //plug into bcrypt and see if match
+                //else return
+
+                //end of user auth
+
+                
+
+            });
+
+        }else if(req.url == "/threadloader"){
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            var query = url.parse(req.url, true).query;
+            var offset = 0;
+            offset = query.offset;
+            //load 20 from offset if offset >0 set it to 0, I hope mysql will work out for larger values anyway
+            if(offset < 0){
+                offset = 0;
+            }
+
+            threadsjson = threadloader.requestoverview(offset);
+            res.end()
+        }else if(req.url == "/threadviewer"){
+            res.writeHead(200, { 'Content-Type': 'text/html' });
             //https://www.w3schools.com/nodejs/nodejs_http.asp
             //
             //do not allow whitespace in table names 
+            
+            res.end();
     }else{
         fs.readFile(urlfilereq, function (err, data) {
         //IMPORTANT QUESTION: can these files be requested in any other way? 
-        permittedpages=["./signup.html", "./forumIndex.html", "./ForumStyle.css", "./Index.html", "./galaryIndex.html", "./threadviewer.html", "./404image.png"]; //my having to include images means that they are requested through this, tha tis good, I can controll more like that
+        permittedpages=["./signup.html", "./forumIndex.html", "./ForumStyle.css", 
+                        "./Index.html", "./galaryIndex.html", "./404image.png",
+                        "./createthread.html"]; 
+                        //my having to include images means that they are requested through this, tha tis good, I can controll more like that
         //why does it want dot here but not above
         console.log("A client has requested: " + urlfilereq);
         if (err || !permittedpages.includes(urlfilereq)) {

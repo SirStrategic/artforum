@@ -1,4 +1,28 @@
-js loads threads from database
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    </head>
+    <script>
+        //for now load the most recently used
+        //have thing at the botom that says gives offset, load 20 threads at a time
+        //threads denoted by their id which is used in their title with the paramater thingo
 
-later feature
-threads can be searched
+        //page loads with parameter 
+
+        function loadthread(id){
+            //opens link with thread
+            console.log(id);
+        }
+
+    </script>
+    <body style = "padding: 10px">
+        results:
+        <div id = "searchresults" style = "padding: 20px">
+            <div onclick = "loadthread(id)" id = "tid">[ThreadName], last used:[last used], created on:[created on], createdby:[createdby]</div><br><br>
+            </div>
+        <label>offset:</label><br>
+        <button id = "loweroffset">previous 20</button> <!--don't display when offset =< 20 but make system failsafe anyway on both server and clientside-->
+        <input type="number"/><!--it shouldn't crash anything if someone changed this to something other than number probably, i'll have to make sure of it-->
+        <button id = "loweroffset">previous 20</button>
+    </body>
+</html>
