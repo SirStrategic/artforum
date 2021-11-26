@@ -24,3 +24,12 @@ p{
     text-align: center;
     text-shadow: 2px 2px red;
 }
+p img {
+    margin-top: -50px;
+}
+video{
+    padding-left: 25%;
+}
+a {
+    color: hotpink;
+}
