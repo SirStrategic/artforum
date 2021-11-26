@@ -144,7 +144,7 @@ return await new Promise(resolve =>{
 
 
 
-
+//this function may be broken
 checkIfThreadExists = async function (threadname){
     
     var format = "[ `!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?~]";
@@ -241,7 +241,7 @@ exports.requestoverview = function(offset){
         host: "localhost",
         user: "root",
         password: "uS:qwv?3btR!cdL",
-        database: ""
+        database: "server"
     });
 
     return new Promise(resolve=>{
@@ -258,7 +258,7 @@ exports.requestoverview = function(offset){
 }
 
 exports.createthread = function(uid,threadname){
-
+    
     var format = "[ `!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?~]";
     for(i = 0; i<format.length; i++){
         if(threadname.indexOf(format[i]) > -1){
@@ -267,9 +267,10 @@ exports.createthread = function(uid,threadname){
     }
     
     if(threadname.length > 16){
+        
     return true;
     }
-
+    
     var connection = mysql.createConnection({
         host: "localhost",
         user: "root",
@@ -279,7 +280,7 @@ exports.createthread = function(uid,threadname){
     
     connection.connect(function(err){ 
         if (err) throw err;
-
+        
     //check if user has made a thread in the last 5 mins
     
         if (err) throw err;
@@ -294,10 +295,12 @@ exports.createthread = function(uid,threadname){
 
             //check if thread already exists or is otherwise invalid
             //instead I should just try to add it into the threads table and if an error is thrown I should just return
-            var invalid = checkIfThreadExists(threadname);
-            if(invalid){
-                return true;
-            } 
+            //console.log("sdfhojnsdudbgjfirudjiwefujis");
+            //var invalid = checkIfThreadExists(threadname);
+            //if(invalid){
+            //    console.log("tried to create already exist");
+            //    return true;
+            //} 
             //abit slower but whatever
             //tbh could cut this out entirely
 
@@ -316,8 +319,9 @@ exports.createthread = function(uid,threadname){
                 
                 connection2.connect(function(err){ 
                     if (err) throw err;
-
-                    qstring = "create table \'" + threadname + "\'( msgid int UNSIGNED not null auto_increment, sender int UNSIGNED,sentat datetime, content varchar(10000) character set utf8, primary key(msgid));";
+                    console.log("["+threadname+"]");
+                    qstring = "create table " + threadname + " ( msgid int UNSIGNED not null auto_increment, sender int UNSIGNED,sentat datetime, content varchar(10000) character set utf8, primary key(msgid));";
+                    console.log(threadname);
                     connection2.query(qstring, function(err, result){
                         console.log("got here heheh");
                     });

@@ -52,6 +52,7 @@ http.createServer(function (req, res){
           data += chunk;
         });
         req.on('end', () => {
+            // console.log(data); // this recieves 'username' sometimes for some reason and idk why
           //res.write("message recieved:" + data);
           res.writeHead(201, {'Content-Type': 'application/json'});
           let responsejsontest = "{\"bad\": true,\"message\":\"something went wrong\"}";//do I have to initialise?
