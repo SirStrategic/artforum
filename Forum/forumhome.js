@@ -1,3 +1,6 @@
+//IMPORTANT, ADD TRY CATCH AROUND WHERE JSONS ARE HANDLED SO CLIENT CANNOT CRASH SERVER
+//FUCK IT I'LL PUT IT AROUND THE ENTIRE FUNCTION
+
 var http = require('http');
 var url = require('url');
 var fs = require('fs');
@@ -18,7 +21,12 @@ var events = require('events');
 var formidable = require('formidable');
 const { json } = require('body-parser');
 
+process.on('uncaughtException', function(e) {
+    console.log(e);
+  });
+
 http.createServer(function (req, res){
+    try{
     var parsedurl = url.parse(req.url, true);
     //if (parsedurl.pathname == "/" || parsedurl.pathname == "\\") {
     //    parsedurl.pathname = "INVALID";
@@ -44,10 +52,16 @@ http.createServer(function (req, res){
           data += chunk;
         });
         req.on('end', () => {
+            // console.log(data); // this recieves 'username' sometimes for some reason and idk why
           //res.write("message recieved:" + data);
           res.writeHead(201, {'Content-Type': 'application/json'});
           let responsejsontest = "{\"bad\": true,\"message\":\"something went wrong\"}";//do I have to initialise?
-          let responsejson = JSON.parse(responsejsontest);
+          let responsejson;
+          try{
+          responsejson = JSON.parse(responsejsontest);
+         }catch(e){
+             console.log(e);
+         }
                result = true;//false means username good to go
                
            try{
@@ -58,10 +72,7 @@ http.createServer(function (req, res){
               //result = (result=="true");
               //console.log(result);
               //console.log(threadloader.checkIfUserExists(data));
-           }catch(err){
-               console.log("ummmmmmmm" + err instanceof ReferenceError);//give all these proper names
-              result = true; //true means it exists or is not allowed
-          };
+           
           
           result.then(
            function(result) { if(result){
@@ -82,8 +93,12 @@ http.createServer(function (req, res){
                res.end();
            }
          );
+        }catch(err){
+            console.log("ummmmmmmm" + err instanceof ReferenceError);//give all these proper names
+           result = true; //true means it exists or is not allowed
+       };
           
-        });
+    });
 
     }else if(req.url == '/usernamechecks'){
     
@@ -98,8 +113,13 @@ http.createServer(function (req, res){
            //res.write("message recieved:" + data);
            res.writeHead(201, {'Content-Type': 'application/json'});
            let responsejsontest = "{\"bad\": true,\"message\":\"something went wrong\"}";//do I have to initialise?
-           let responsejson = JSON.parse(responsejsontest);
-                result = true;//false means username good to go
+           let responsejson;
+           try{
+           responsejson = JSON.parse(responsejsontest);
+           }catch(e){
+               console.log(e);
+           }     
+           result = true;//false means username good to go
                 //console.log("-----first-----"+typeof(result)+"----------------");
             try{
                result = threadloader.checkIfUserExists(data);//idk what the return type is lol printout is yellow so prob real bool but whatever
@@ -107,10 +127,7 @@ http.createServer(function (req, res){
                //result = (result=="true");
                //console.log(result);
                //console.log(threadloader.checkIfUserExists(data));
-            }catch(err){
-                console.log("ummmmmmmm" + err instanceof ReferenceError);//give all these proper names
-               result = true; //true means it exists or is not allowed
-           };
+            
            
 
            //oop I think I used confusing names here outer result is promise and inner is bool
@@ -139,14 +156,19 @@ http.createServer(function (req, res){
                 res.end();
             }
           );
-           
+           }catch(err){
+                console.log("ummmmmmmm" + err instanceof ReferenceError);//give all these proper names
+               result = true; //true means it exists or is not allowed
+           };
          });
+         
 
 
          
     }else if(req.url == '/signupform'){
          res.writeHead(200, {'Content-Type': 'text/html'});
         //todo: do preliminary tests make sure message recieved
+        try{
         let data = '';
          req.on('data', chunk => {
            data += chunk;
@@ -154,7 +176,9 @@ http.createServer(function (req, res){
          req.on('end', () => {
             //console.log("aaaaaaaaaaaaaaaaaaaaaa"+data);
             //no need to parse?
+            
             userinfo = JSON.parse(data);
+            
             //console.log("username recieved: " + data.username + "  password  recieved: " + data.password);
             
             //console.log("username recieved: " + userinfo.username + "  password  recieved: " + userinfo.password);
@@ -163,8 +187,8 @@ http.createServer(function (req, res){
             const salt = bcrypt.genSaltSync(saltRounds);
             const hash = bcrypt.hashSync(userinfo.password, salt);
 
-            storehash = hash.slice(-31);
-            storesalt = hash.slice(-53,-31);
+            //storehash = hash.slice(-31);
+            //storesalt = hash.slice(-60,-31);
                    // console.log(storehash);
                    // console.log(storesalt);
                     // Store hash in your password DB.
@@ -180,7 +204,7 @@ http.createServer(function (req, res){
          //submit to database
          //idk if I even need this here, might even thow an error lol
 
-         prom = threadloader.adduser(userinfo.username, storehash, storesalt, saltRounds); 
+         prom = threadloader.adduser(userinfo.username, hash); 
          //this is kinda inneficient, since i'm asking it to hash before I even know if username's a duplicate
          //although only chance it'd get through to here is if it passes form by hax
 
@@ -189,9 +213,12 @@ http.createServer(function (req, res){
          }, error => {
 
          });
-
          res.end();
+
         });
+    }catch(e){
+        console.log(e);
+    }
         res.end();
         }else if(req.url == '/createthreadform'){
 
@@ -201,14 +228,37 @@ http.createServer(function (req, res){
             });
             req.on('end', () => {
                 //json:threadname, username, password
-                
-                //authenticate user
-                //retrieve salt
-                //retrieve rounds
-                //plug into bcrypt and see if match
-                //else return
+                authenticated = false;
+                try{
+                requestdata = JSON.parse(data);
 
-                //end of user auth
+                
+                credentials = threadloader.retrieveCredentials(requestdata.username);
+                credentials.then(result=>{
+                    
+                   authenticated = bcrypt.compareSync(requestdata.password,result[0].hashed);
+                    
+                   if(!authenticated){
+                    return false;
+                    }
+
+                    //user authenticated
+
+                    //plug into bcrypt and see if match
+                    //else return
+
+                    //end of user auth
+                    console.log("11111111111111111111111");
+                    threadloader.createthread(result[0].uid,requestdata.threadname);
+                    console.log("1111111122222222222222111111111111111");
+
+                    });
+                
+               
+                }catch(e){
+                    console.log(e);
+                }
+                
 
                 
 
@@ -270,7 +320,9 @@ http.createServer(function (req, res){
         //uS:qwv?3btR!cdL
 
     }
-    
+    }catch(e){
+        //this isn't working hmm
+    }
     //return res.end();
 }).listen(8080, 'localhost');
 

@@ -143,7 +143,9 @@ return await new Promise(resolve =>{
 }
 
 
-exports.checkIfThreadExists = async function (threadname){
+
+//this function may be broken
+checkIfThreadExists = async function (threadname){
     
     var format = "[ `!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?~]";
     for(i = 0; i<format.length; i++){
@@ -199,16 +201,10 @@ return await new Promise(resolve =>{
     
 });
 }
+exports.checkIfThreadExists = checkIfThreadExists;
 
 
-
-
-
-
-
-
-
-exports.adduser = async function (username, hashedpassword, salt, rounds){
+exports.adduser = async function (username, hashedpassword){
     
  
     var connection = mysql.createConnection({
@@ -223,7 +219,7 @@ return await new Promise(resolve => {
     connection.connect(function(err){ 
         if (err) throw err;
         
-      qstring = "Insert into users (uid,username,hashed,salt,rounds,joined,lastcreatedthread) Values (null,\'" + username + "\',\'"+ hashedpassword +"\',\'"+ salt +"\', "+ rounds +", UTC_TIMESTAMP(), \'2000-01-01 00:00:00\');"; //u can use default if u need
+      qstring = "Insert into users (uid,username,hashed,joined,lastcreatedthread) Values (null,\'" + username + "\',\'"+ hashedpassword +"\', UTC_TIMESTAMP(), \'2000-01-01 00:00:00\');"; //u can use default if u need
       //qstring = "use server\; Insert into users (uid, username, hashed, salt, rounds, joined, lastcreatedthread ) Values (null, 'testuser1347', 'hashh', 'salt', 10, UTC_TIMESTAMP(), UTC_TIMESTAMP());";
       //console.log(qstring);
       
@@ -245,7 +241,7 @@ exports.requestoverview = function(offset){
         host: "localhost",
         user: "root",
         password: "uS:qwv?3btR!cdL",
-        database: ""
+        database: "server"
     });
 
     return new Promise(resolve=>{
@@ -261,7 +257,84 @@ exports.requestoverview = function(offset){
     });
 }
 
-exports.createforum = async function(uid,threadname){
+exports.createthread = function(uid,threadname){
+    
+    var format = "[ `!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>\/?~]";
+    for(i = 0; i<format.length; i++){
+        if(threadname.indexOf(format[i]) > -1){
+            return true;//return true means bad
+        }
+    }
+    
+    if(threadname.length > 16){
+        
+    return true;
+    }
+    
+    var connection = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "uS:qwv?3btR!cdL",
+        database: "server"
+    });
+    
+    connection.connect(function(err){ 
+        if (err) throw err;
+        
+    //check if user has made a thread in the last 5 mins
+    
+        if (err) throw err;
+                
+        //qstring = "select lastcreatedthread from users where uid = "+uid+";"; 
+        //could probably implement none the less by just checking against timezone now but still don't like it, might get fucked up
+    
+        //wait to implement slowdown feature
+       // connection.query(qstring, function(err, result){
+          //  console.log(result[0]);
+            //do check here to see if to return function
+
+            //check if thread already exists or is otherwise invalid
+            //instead I should just try to add it into the threads table and if an error is thrown I should just return
+            //console.log("sdfhojnsdudbgjfirudjiwefujis");
+            //var invalid = checkIfThreadExists(threadname);
+            //if(invalid){
+            //    console.log("tried to create already exist");
+            //    return true;
+            //} 
+            //abit slower but whatever
+            //tbh could cut this out entirely
+
+            //add to system table
+            console.log("got here heheh222232322323233222");
+            qstring = "Insert into threads (tid, threadName, lastused) Values (null,\'" + threadname + "\', now());";
+            connection.query(qstring, function(err, result){
+                console.log("got here heheh222222");
+
+                var connection2 = mysql.createConnection({
+                    host: "localhost",
+                    user: "root",
+                    password: "uS:qwv?3btR!cdL",
+                    database: "forum"
+                });
+                
+                connection2.connect(function(err){ 
+                    if (err) throw err;
+                    console.log("["+threadname+"]");
+                    qstring = "create table " + threadname + " ( msgid int UNSIGNED not null auto_increment, sender int UNSIGNED,sentat datetime, content varchar(10000) character set utf8, primary key(msgid));";
+                    console.log(threadname);
+                    connection2.query(qstring, function(err, result){
+                        console.log("got here heheh");
+                    });
+                });
+            });
+
+        //});   
+            
+    });
+    
+};
+
+exports.retrieveCredentials = async function(username){
 
     var connection = mysql.createConnection({
         host: "localhost",
@@ -270,37 +343,20 @@ exports.createforum = async function(uid,threadname){
         database: "server"
     });
 
-    connection.connect(function(err){ 
-        if (err) throw err;
+    return await new Promise(resolve=>{
+        connection.connect(function(err){ 
+            if (err) {throw err};
 
-    //check if user has made a thread in the last 5 mins
-    
-        if (err) throw err;
-                
-        qstring = "use server\; select lastcreatedthread from users where uid = "+uid+";"; 
+        qstring = "select * from users where username = \'"+username+"\';"; 
     
         connection.query(qstring, function(err, result){
-            console.log(result);
+            //console.log(result);
+             resolve(result);
             //do check here to see if to return function
         });   
-            
     });
-    
-    
-
-    //return false;
-
-    //check if thread already exists or is otherwise invalid
-   var invalid = checkIfThreadExists(threadname);
-
-   if(invalid){
-       return false;
-   }
-
-   //create thread in threads table then add thread table
-
+});
 }
-
 
 
     
