@@ -5,9 +5,9 @@
         ThreadName:<input type="text" id="threadnamebox" maxlength = "16" onchange = "check()"></input><br>
         <!--<button id="checktemp" onclick = "check()">check</button><br>-->
         <br>Validate Credentials:<br>
-        Username:<input type="text" id="threadnamebox" maxlength = "16"></input><br>
-        Password:<input type="password" id="password" maxlength = "512"></input><br>
-        <br>Your Account will only be created if it has a unique username<br>
+        Username:<input type="text" id="username" maxlength = "16"></input><br>
+        Password:<input type="password" id="password" maxlength = "512"></input><br><br> (note: system cannot yet inform you wether your login information was correct)
+        <br>The thread will only be created if it has a unique name<br><br>
         <button id="send" onclick = "sendform()">Submit </button><br>
         <label id = "formsubmitted" style = "color:rgb(168, 9, 9)">After Submitting please wait</label>
         
@@ -43,7 +43,7 @@ async function sendcheck(to, threadnametocheck) { //why does it need the identif
   //console.log(result);
   let parsedresult = JSON.parse(result);
   document.getElementById("okayquestionmark").innerText = parsedresult.message;
-  console.log("checksent");
+  //console.log("checksent"); lol this should be up above no?
   return parsedresult.bad;
 
 }
@@ -53,13 +53,7 @@ function sendform(){
 
     let username = document.getElementById("username").value
     let password = document.getElementById("password").value
-
-    console.log("username: " + username);
-    console.log("password: " + password);
-
-    //check if values non empty
-
-
+    let threadname = document.getElementById("threadnamebox").value
 
     const usernamegood = sendcheck("http://localhost:8080/threadnamechecks", username);//I changed this from signupform and nothing changed.... um
     console.log(usernamegood);
@@ -72,13 +66,13 @@ function sendform(){
             
           //given up on using crypto thing
 
-            let requestjsontext = "{\"username\":\"" + username + "\",\"password\":\""+password+"\"}";//do I have to initialise?
+            let requestjsontext = "{\"threadname\":\"" + threadname +"\",\"username\":\"" + username + "\",\"password\":\""+password+"\"}";//do I have to initialise?
           // let requestjson = JSON.parse(requestjsontext);
            console.log(requestjsontext);
-            let response = fetch("http://localhost:8080/",{method:"Post",headers:{'Content-Type': 'application/json'},body:requestjsontext});
+            let response = fetch("http://localhost:8080/createthreadform",{method:"Post",headers:{'Content-Type': 'application/json'},body:requestjsontext});
             response.then(result3=>{
                 console.log("form should have been sent:" + result3); //will be designed to respond with success
-                document.getElementById("formsubmitted").innerText = "Your account creation request has probably sent and recieved ¯\\_(ツ)_/¯"
+                document.getElementById("formsubmitted").innerText = "Your thread creation request has probably sent and recieved ¯\\_(ツ)_/¯"
             })
         //});
         }   
