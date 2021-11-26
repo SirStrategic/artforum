@@ -3,9 +3,6 @@ body{
     color: #ebd02b;
     font-family: cursive;
 }
-center{
-    background-color:#5d6174;
-}
 ul {
     list-style: none;
     padding: 0;
@@ -25,3 +22,11 @@ p{
     text-align: center;
     text-shadow: 2px 2px red;
 }
+  a {
+      color: yellow;
+  }
+  .logo center {
+    background-color: #5d6174;
+    border: 7px solid #ebd02b;
+    outline: 5px dotted red;
+  }

@@ -3,9 +3,6 @@ body{
     color: #ebd02b;
     font-family: cursive;
 }
-center{
-    background-color:#5d6174;
-}
 ul {
     list-style: none;
     padding: 0;
@@ -23,4 +20,19 @@ p{
     font-size: 60px;
     text-align: center;
     text-shadow: 2px 2px red;
+}
+.pages center {
+    margin-left: 10%;
+    margin-right: 10%;
+  }
+  a {
+      color: yellow;
+  }
+  .logo center {
+    background-color: #5d6174;
+    border: 7px solid #ebd02b;
+    outline: 5px dotted red;
+  }
+  p img {
+    margin-top: -50px;
 }

@@ -62,3 +62,6 @@ p{
     border: 7px solid #ebd02b;
     outline: 3px dashed red;
   }
+  .smaller img{
+    width: 50%;
+  }
