@@ -1,0 +1,25 @@
+body{
+    background-color: #040c31;
+    font-family: cursive;
+    color: #ebd02b;
+}
+.logo center {
+    background-color: #5d6174;
+    border: 7px solid #ebd02b;
+    outline: 5px dotted red;
+    text-shadow: 2px 2px black;
+  }
+  .sign center {
+    border: 7px solid #ebd02b;
+    outline: 4px dashed red;  
+    margin-left: 27%;
+    margin-right: 27%;
+    padding-top: 5%;
+    padding-bottom: 5%;
+  }
+  video {
+      margin-top: -60px;
+  }
+  label {
+    text-shadow: 2px 2px black;
+  }
