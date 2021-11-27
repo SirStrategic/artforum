@@ -14,6 +14,14 @@
             console.log(id);
         }
 
+        function loadpage(){
+            
+        }
+
+        function changevalue(by){
+            document.getElementById(offsetnumber).value = document.getElementById(offsetnumber).value + by;
+        }
+
     </script>
     <body style = "padding: 10px">
         results:
@@ -21,8 +29,9 @@
             <div onclick = "loadthread(id)" id = "tid">[ThreadName], last used:[last used], created on:[created on], createdby:[createdby]</div><br><br>
             </div>
         <label>offset:</label><br>
-        <button id = "loweroffset">previous 20</button> <!--don't display when offset =< 20 but make system failsafe anyway on both server and clientside-->
-        <input type="number"/><!--it shouldn't crash anything if someone changed this to something other than number probably, i'll have to make sure of it-->
-        <button id = "loweroffset">previous 20</button>
+        <button id = "loweroffset" onclick = "changevalue(-20)">previous 20</button> <!--don't display when offset =< 20 but make system failsafe anyway on both server and clientside-->
+        <input id = "offsetnumber" type="number"/><!--it shouldn't crash anything if someone changed this to something other than number probably, i'll have to make sure of it-->
+        <button id = "loweroffset" onclick = "changevalue(20)">previous 20</button><br>
+        <button id = "loweroffset" onclick = "loadpage()">load</button>
     </body>
 </html>

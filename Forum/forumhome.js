@@ -248,9 +248,9 @@ http.createServer(function (req, res){
                     //else return
 
                     //end of user auth
-                    console.log("11111111111111111111111");
+                    //console.log("11111111111111111111111");
                     threadloader.createthread(result[0].uid,requestdata.threadname);
-                    console.log("1111111122222222222222111111111111111");
+                    //console.log("1111111122222222222222111111111111111");
 
                     });
                 
@@ -268,14 +268,55 @@ http.createServer(function (req, res){
             res.writeHead(200, { 'Content-Type': 'text/html' });
             var query = url.parse(req.url, true).query;
             var offset = 0;
-            offset = query.offset;
+            if(!(query.offset == undefined || query.offset == null)){
+                offset = parseint(query.offset);//IMPORTANT, PREVENT POSSIBLE SQL INJECTION ATTACK
+                //HOPEFULLY MY USERNAME AND THREAD NAME CHECKING SYSTEMS AREN'T VULNERABLE, BECAUSE IF THIS IS THEY SHOULD BE TOO, BUT THIS SHOULDN'T BE ANYWAY 
+                //i assume the sql will just be in error
+            }
             //load 20 from offset if offset >0 set it to 0, I hope mysql will work out for larger values anyway
             if(offset < 0){
                 offset = 0;
             }
+            //console.log(offset);
+            var threadsjson = threadloader.requestoverview(offset);
+            //console.log(typeof(threadsjson));
 
-            threadsjson = threadloader.requestoverview(offset);
-            res.end()
+            threadsjson.then(result=>{
+                //this probably is the jankiest thing I've made in my entire life
+                    
+                //let's hope js doesn't have out of range errors 
+                resultstring = "";
+                for(let i = 0; i < 20; i++){
+                    if(result[i] == undefined || result[i] == null){
+                        break;
+                    }
+                    resultstring += "<div onclick = \"loadthread(id)\" id = "+result[i].tid+">["+result[i].threadName+"]<br> last used:["+result[i].lastused+"]<br> created on:["+result[i].createdon+"]</div><br><br>";//i'm not fucked to find out their name too much stress on db
+                }
+
+                //shit just found out variables defined without var or let become global shit shit SHIT
+                //time to scrub 400 lines of code
+                let threadloaderpage = `<html>
+                <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+                </head>
+                <script>
+                </script>
+                <body style = "padding: 10px">
+                    results:
+                    <div id = "searchresults" style = "padding: 20px">
+                        `+resultstring+`
+                    <label>offset:</label><br>
+                    <button id = "loweroffset">previous 20</button> <!--don't display when offset =< 20 but make system failsafe anyway on both server and clientside-->
+                    <input type="number"/><!--it shouldn't crash anything if someone changed this to something other than number probably, i'll have to make sure of it-->
+                    <button id = "loweroffset">previous 20</button>
+                </body>
+            </html>`;
+
+                res.write(threadloaderpage);
+                console.log(threadloaderpage)
+                res.end()
+            });
+            
         }else if(req.url == "/threadviewer"){
             res.writeHead(200, { 'Content-Type': 'text/html' });
             //https://www.w3schools.com/nodejs/nodejs_http.asp

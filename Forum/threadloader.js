@@ -235,7 +235,7 @@ return await new Promise(resolve => {
 });
 }
 
-exports.requestoverview = function(offset){
+exports.requestoverview = async function(offset){
 
     var connection = mysql.createConnection({
         host: "localhost",
@@ -248,10 +248,11 @@ exports.requestoverview = function(offset){
         connection.connect(function(err){ 
             if (err) throw err;
             
-          qstring = ""; 
+          qstring = "select * from threads order by lastused desc limit 20 offset " + offset + ";"; 
 
           connection.query(qstring, function(err, result){
-            resolve(true);
+              //console.log(err);
+            resolve(result);
           });   
         });
     });
@@ -305,10 +306,10 @@ exports.createthread = function(uid,threadname){
             //tbh could cut this out entirely
 
             //add to system table
-            console.log("got here heheh222232322323233222");
-            qstring = "Insert into threads (tid, threadName, lastused) Values (null,\'" + threadname + "\', now());";
+            //console.log("got here heheh222232322323233222");
+            qstring = "Insert into threads (tid, threadName, lastused, createdon, createdby) Values (null,\'" + threadname + "\', UTC_TIMESTAMP(), UTC_TIMESTAMP(), "+uid+");";
             connection.query(qstring, function(err, result){
-                console.log("got here heheh222222");
+                //console.log("got here heheh222222");
 
                 var connection2 = mysql.createConnection({
                     host: "localhost",
@@ -319,11 +320,11 @@ exports.createthread = function(uid,threadname){
                 
                 connection2.connect(function(err){ 
                     if (err) throw err;
-                    console.log("["+threadname+"]");
+                    //console.log("["+threadname+"]");
                     qstring = "create table " + threadname + " ( msgid int UNSIGNED not null auto_increment, sender int UNSIGNED,sentat datetime, content varchar(10000) character set utf8, primary key(msgid));";
-                    console.log(threadname);
+                    //console.log(threadname);
                     connection2.query(qstring, function(err, result){
-                        console.log("got here heheh");
+                        //console.log("got here heheh");
                     });
                 });
             });
