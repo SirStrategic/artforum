@@ -1,4 +1,4 @@
-<html>
+<html>//file out of date
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     </head>
@@ -11,15 +11,15 @@
 
         function loadthread(id){
             //opens link with thread
-            console.log(id);
+            window.open("localhost:8080/threadviewer?=" + id);
         }
 
         function loadpage(){
-            
+            window.open("localhost:8080/threadloader?offset="+document.getElementById(offsetnumber).value);
         }
 
         function changevalue(by){
-            document.getElementById(offsetnumber).value = document.getElementById(offsetnumber).value + by;
+            document.getElementById(offsetnumber).value = parseInt(document.getElementById(offsetnumber).value,10) + by;
         }
 
     </script>

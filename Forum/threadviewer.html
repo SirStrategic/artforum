@@ -1,4 +1,46 @@
 <html>
-    <head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
-    posting on thread gives thread id, username, password, message
-</html>
+                <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+                </head>
+                <!--posting on thread gives thread id, username, password, message-->
+                <!--thread id used to look up thread name, then message inserted-->
+
+                <body style = "padding: 10px">
+                <script>
+                function loadthread(id){
+                    //opens link with thread
+                    window.location.replace("http://localhost:8080/threadviewer?=" + id);
+                }
+
+                function loadpage(){
+                    if (document.getElementById("offsetnumber").value == null ||  document.getElementById("offsetnumber").value == undefined){
+                        //window.location.replace("http://localhost:8080/threadloader?offset=0");
+                        console.log(window.location.href());
+                    }
+                    window.location.replace("http://localhost:8080/threadloader?offset="+document.getElementById("offsetnumber").value);
+                }
+
+                function changevalue(by){
+                    if (document.getElementById("offsetnumber").value == null ||  document.getElementById("offsetnumber").value == undefined){
+                        document.getElementById("offsetnumber").value = 0;
+                    }
+                    document.getElementById("offsetnumber").value = parseInt(document.getElementById("offsetnumber").value,10) + by;
+                }
+
+            </script>
+                    [threadname]
+                    <div id = "searchresults" style = "padding: 20px">
+                       <div>Posted by: [username] at:[time] <br> content</content></div><br><br> 
+                       <div>Posted by: [username] at:[time] <br> content</content></div><br><br> 
+                       <div>Posted by: [username] at:[time] <br> content</content></div><br><br> 
+                       <div>Posted by: [username] at:[time] <br> content</content></div><br><br> 
+                       <div>Posted by: [username] at:[time] <br> content</content></div><br><br> 
+                       <div>Posted by: [username] at:[time] <br> content</content></div><br><br> 
+                       <div>Posted by: [username] at:[time] <br> content</content></div><br><br> 
+                    <label>offset:</label><br>
+                    <button id = "loweroffset" onclick = "changevalue(-20)">previous 20</button> <!--don't display when offset =< 20 but make system failsafe anyway on both server and clientside-->
+                    <input id = "offsetnumber" type="number" value = "0" /><!--it shouldn't crash anything if someone changed this to something other than number probably, i'll have to make sure of it-->
+                    <button id = "loweroffset" onclick = "changevalue(20)">next 20</button><br>
+                    <button id = "loweroffset" onclick = "loadpage()">load</button>
+                </body>
+            </html>
