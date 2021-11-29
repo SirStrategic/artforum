@@ -33,7 +33,7 @@ http.createServer(function (req, res){
     //}
     var urlfilereq = "." + parsedurl.pathname;
     //
-    
+    console.log("there was a request"); 
     if (req.url == '/fileupload') {
         var form = new formidable.IncomingForm();
         form.parse(req, function (err, fields, files) {
@@ -62,7 +62,7 @@ http.createServer(function (req, res){
          }catch(e){
              console.log(e);
          }
-               result = true;//false means username good to go
+               var result = true;//false means username good to go
                
            try{
               result = threadloader.checkIfThreadExists(data);//idk what the return type is lol printout is yellow so prob real bool but whatever
@@ -119,7 +119,7 @@ http.createServer(function (req, res){
            }catch(e){
                console.log(e);
            }     
-           result = true;//false means username good to go
+           var result = true;//false means username good to go
                 //console.log("-----first-----"+typeof(result)+"----------------");
             try{
                result = threadloader.checkIfUserExists(data);//idk what the return type is lol printout is yellow so prob real bool but whatever
@@ -177,7 +177,7 @@ http.createServer(function (req, res){
             //console.log("aaaaaaaaaaaaaaaaaaaaaa"+data);
             //no need to parse?
             
-            userinfo = JSON.parse(data);
+            var userinfo = JSON.parse(data);
             
             //console.log("username recieved: " + data.username + "  password  recieved: " + data.password);
             
@@ -204,7 +204,7 @@ http.createServer(function (req, res){
          //submit to database
          //idk if I even need this here, might even thow an error lol
 
-         prom = threadloader.adduser(userinfo.username, hash); 
+         var prom = threadloader.adduser(userinfo.username, hash); 
          //this is kinda inneficient, since i'm asking it to hash before I even know if username's a duplicate
          //although only chance it'd get through to here is if it passes form by hax
 
@@ -228,12 +228,12 @@ http.createServer(function (req, res){
             });
             req.on('end', () => {
                 //json:threadname, username, password
-                authenticated = false;
+                var authenticated = false;
                 try{
-                requestdata = JSON.parse(data);
+                var requestdata = JSON.parse(data);
 
                 
-                credentials = threadloader.retrieveCredentials(requestdata.username);
+                var credentials = threadloader.retrieveCredentials(requestdata.username);
                 credentials.then(result=>{
                     
                    authenticated = bcrypt.compareSync(requestdata.password,result[0].hashed);
@@ -251,7 +251,7 @@ http.createServer(function (req, res){
                     //console.log("11111111111111111111111");
                     threadloader.createthread(result[0].uid,requestdata.threadname);
                     //console.log("1111111122222222222222111111111111111");
-
+                    res.end();//should probably wait with promise but fuck that
                     });
                 
                
@@ -264,20 +264,28 @@ http.createServer(function (req, res){
 
             });
 
-        }else if(req.url == "/threadloader"){
+        }else if(req.url.split("?")[0] == "/threadloader"){
+            console.log("request");
             res.writeHead(200, { 'Content-Type': 'text/html' });
             var query = url.parse(req.url, true).query;
             var offset = 0;
+            //console.log(offset);
+            
+            try{
             if(!(query.offset == undefined || query.offset == null)){
-                offset = parseint(query.offset);//IMPORTANT, PREVENT POSSIBLE SQL INJECTION ATTACK
+                offset = 0;
+                //console.log("asdddddddddd"+offset);
+            }}catch(e){console.log(e)};
+            //load 20 from offset if offset >0 set it to 0, I hope mysql will work out for larger values anyway
+            //console.log("test");
+            offset = parseInt(query.offset);//IMPORTANT, PREVENT POSSIBLE SQL INJECTION ATTACK
                 //HOPEFULLY MY USERNAME AND THREAD NAME CHECKING SYSTEMS AREN'T VULNERABLE, BECAUSE IF THIS IS THEY SHOULD BE TOO, BUT THIS SHOULDN'T BE ANYWAY 
                 //i assume the sql will just be in error
-            }
-            //load 20 from offset if offset >0 set it to 0, I hope mysql will work out for larger values anyway
             if(offset < 0){
                 offset = 0;
             }
-            //console.log(offset);
+            
+            console.log(offset);
             var threadsjson = threadloader.requestoverview(offset);
             //console.log(typeof(threadsjson));
 
@@ -285,7 +293,7 @@ http.createServer(function (req, res){
                 //this probably is the jankiest thing I've made in my entire life
                     
                 //let's hope js doesn't have out of range errors 
-                resultstring = "";
+                var resultstring = "";
                 for(let i = 0; i < 20; i++){
                     if(result[i] == undefined || result[i] == null){
                         break;
@@ -299,37 +307,148 @@ http.createServer(function (req, res){
                 <head>
                     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
                 </head>
-                <script>
-                </script>
+                
                 <body style = "padding: 10px">
+                <script>
+                function loadthread(id){
+                    //opens link with thread
+                    window.location.replace("http://localhost:8080/threadviewer?=" + id);
+                }
+
+                function loadpage(){
+                    if (document.getElementById("offsetnumber").value == null ||  document.getElementById("offsetnumber").value == undefined){
+                        window.location.replace("http://localhost:8080/threadloader?offset=0");
+                    }
+                    window.location.replace("http://localhost:8080/threadloader?offset="+document.getElementById("offsetnumber").value);
+                }
+
+                function changevalue(by){
+                    if (document.getElementById("offsetnumber").value == null ||  document.getElementById("offsetnumber").value == undefined){
+                        document.getElementById("offsetnumber").value = 0;
+                    }
+                    document.getElementById("offsetnumber").value = parseInt(document.getElementById("offsetnumber").value,10) + by;
+                }
+
+            </script>
                     results:
                     <div id = "searchresults" style = "padding: 20px">
                         `+resultstring+`
                     <label>offset:</label><br>
-                    <button id = "loweroffset">previous 20</button> <!--don't display when offset =< 20 but make system failsafe anyway on both server and clientside-->
-                    <input type="number"/><!--it shouldn't crash anything if someone changed this to something other than number probably, i'll have to make sure of it-->
-                    <button id = "loweroffset">previous 20</button>
+                    <button id = "loweroffset" onclick = "changevalue(-20)">previous 20</button> <!--don't display when offset =< 20 but make system failsafe anyway on both server and clientside-->
+                    <input id = "offsetnumber" type="number" value = "0" /><!--it shouldn't crash anything if someone changed this to something other than number probably, i'll have to make sure of it-->
+                    <button id = "loweroffset" onclick = "changevalue(20)">next 20</button><br>
+                    <button id = "loweroffset" onclick = "loadpage()">load</button>
                 </body>
             </html>`;
 
                 res.write(threadloaderpage);
-                console.log(threadloaderpage)
+                //console.log(threadloaderpage)
                 res.end()
             });
             
-        }else if(req.url == "/threadviewer"){
+        }else if(req.url.split("?")[0] == "/threadviewer"){
             res.writeHead(200, { 'Content-Type': 'text/html' });
             //https://www.w3schools.com/nodejs/nodejs_http.asp
             //
-            //do not allow whitespace in table names 
+            //do not allow whitespace in table names nvm the thing just fails, hopefully not vulneralble to injection atatck of any kind
+            var query = url.parse(req.url, true).query;
+            var offset = 0;
             
-            res.end();
-    }else{
+            if(!(query.offset == undefined || query.offset == null)){
+                res.write("Invalid thread id <br><br>Use following format: <ip>/threadviewer?=<threadid>")//IMPORTANT, PREVENT POSSIBLE SQL INJECTION ATTACK
+                //HOPEFULLY MY USERNAME AND THREAD NAME CHECKING SYSTEMS AREN'T VULNERABLE, BECAUSE IF THIS IS THEY SHOULD BE TOO, BUT THIS SHOULDN'T BE ANYWAY 
+                //i assume the sql will just be in error    
+            }
+            offset = parseInt(query.offset);
+            if(offset < 0){
+                offset = 0;
+            }
+            
+            var tid = 0;
+            
+            if(!(query.tid == undefined || query.tid == null)){
+                res.write("Invalid thread id <br><br>Use following format: <ip>/threadviewer?=<threadid>")//IMPORTANT, PREVENT POSSIBLE SQL INJECTION ATTACK
+                //HOPEFULLY MY USERNAME AND THREAD NAME CHECKING SYSTEMS AREN'T VULNERABLE, BECAUSE IF THIS IS THEY SHOULD BE TOO, BUT THIS SHOULDN'T BE ANYWAY 
+                //i assume the sql will just be in error    
+            }
+            tid = parseInt(query.tid);
+            if(tid < 0){
+                tid = 0;
+            }
+            //hopefully they don't post too much and break it both serverside and with how much must be loaded, i'll use pages 
+            getnamepromise = threadloader.getthreadname(tid);
+            getnamepromise.then(result=>{
+
+                threadloadpromise = threadloader.loadthread(result[0],offset);
+                threadloadpromise.then(result2=>{
+                    var resultstring = "";
+                    if(result2 == undefined || result2 == null){
+                        resultstring = "Thread is empty"
+                    }else{
+                for(let i = 0; i < 1000; i++){
+                    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                    if(result2[i] == undefined || result2[i] == null){
+                        break;
+                    }//might be usless now
+                    resultstring += "<div>Posted by: ["+result2[i].sendername+"] at:["+result2[i].sentat+"] mesage:<br>"+result2[i].content+"</content></div><br><br>";
+                }
+            }
+
+                let threadviewerpage=`<html>
+                <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+                </head>
+                <!--posting on thread gives thread id, username, password, message-->
+                <!--thread id used to look up thread name, then message inserted-->
+
+                <body style = "padding: 10px">
+                <script>
+                function loadthread(id){
+                    //opens link with thread
+                    window.location.replace("http://localhost:8080/threadviewer?=" + id);
+                }
+
+                function loadpage(){
+                    if (document.getElementById("offsetnumber").value == null ||  document.getElementById("offsetnumber").value == undefined){
+                        //window.location.replace("http://localhost:8080/threadloader?offset=0");
+                        console.log(window.location.href());
+                    }
+                    window.location.replace("http://localhost:8080/threadloader?offset="+document.getElementById("offsetnumber").value);
+                }
+
+                function changevalue(by){
+                    if (document.getElementById("offsetnumber").value == null ||  document.getElementById("offsetnumber").value == undefined){
+                        document.getElementById("offsetnumber").value = 0;
+                    }
+                    document.getElementById("offsetnumber").value = parseInt(document.getElementById("offsetnumber").value,10) + by;
+                }
+
+            </script>
+                    [`+result[0]+`]
+                    <div id = "searchresults" style = "padding: 20px">
+                       `+resultstring+`<br><br><br><br>
+                    <label>offset:</label><br>
+                    <button id = "loweroffset" onclick = "changevalue(-20)">previous 20</button> <!--don't display when offset =< 20 but make system failsafe anyway on both server and clientside-->
+                    <input id = "offsetnumber" type="number" value = "0" /><!--it shouldn't crash anything if someone changed this to something other than number probably, i'll have to make sure of it-->
+                    <button id = "loweroffset" onclick = "changevalue(20)">next 20</button><br>
+                    <button id = "loweroffset" onclick = "loadpage()">load</button>
+                </body>
+            </html>`;
+
+            res.write(threadviewerpage);
+            console.log(threadviewerpage);
+                res.end()
+            });
+                //res.end();
+            });
+                //res.end(); //doing this incase of error ig, might not even work, and might not be nececary but whatever
+                //this was screwinng me over lol
+            }else{
         fs.readFile(urlfilereq, function (err, data) {
         //IMPORTANT QUESTION: can these files be requested in any other way? 
-        permittedpages=["./signup.html", "./forumIndex.html", "./ForumStyle.css", 
+         permittedpages=["./signup.html", "./forumIndex.html", "./ForumStyle.css", 
                         "./Index.html", "./galaryIndex.html", "./404image.png",
-                        "./createthread.html"]; 
+                        "./createthread.html"]; //global
                         //my having to include images means that they are requested through this, tha tis good, I can controll more like that
         //why does it want dot here but not above
         console.log("A client has requested: " + urlfilereq);

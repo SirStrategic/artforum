@@ -321,7 +321,7 @@ exports.createthread = function(uid,threadname){
                 connection2.connect(function(err){ 
                     if (err) throw err;
                     //console.log("["+threadname+"]");
-                    qstring = "create table " + threadname + " ( msgid int UNSIGNED not null auto_increment, sender int UNSIGNED,sentat datetime, content varchar(10000) character set utf8, primary key(msgid));";
+                    qstring = "create table " + threadname + " ( msgid int UNSIGNED not null auto_increment, sender int UNSIGNED, sendername char(16) character set utf8, sentat datetime, content varchar(10000) character set utf8, primary key(msgid));";
                     //console.log(threadname);
                     connection2.query(qstring, function(err, result){
                         //console.log("got here heheh");
@@ -358,6 +358,56 @@ exports.retrieveCredentials = async function(username){
     });
 });
 }
+
+exports.loadthread = async function(threadname,offset){
+
+    var connection = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "uS:qwv?3btR!cdL",
+        database: "forum"
+    });
+
+    return await new Promise(resolve=>{
+        connection.connect(function(err){ 
+            if (err) {throw err};
+
+        qstring = "select * from "+threadname+" order by lastused asc limit 1000 offset " + offset + ";"; 
+    
+        connection.query(qstring, function(err, result){
+            //console.log(result);
+             resolve(result);
+            //do check here to see if to return function
+        });   
+    });
+});}
+
+exports.getthreadname = async function(tid){
+
+    var connection = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "uS:qwv?3btR!cdL",
+        database: "server"
+    });
+
+    return await new Promise(resolve=>{
+        connection.connect(function(err){ 
+            if (err) {throw err};
+
+        qstring = "select threadname from threads where tid = \'"+tid+"\';"; 
+    
+        connection.query(qstring, function(err, result){
+            //console.log(result);
+             resolve(result);
+            //do check here to see if to return function
+        });   
+    });
+});
+}
+
+
+
 
 
     
