@@ -12,8 +12,6 @@ body{
   .sign center {
     border: 7px solid #ebd02b;
     outline: 4px dashed red;  
-    margin-left: 27%;
-    margin-right: 27%;
     padding-top: 5%;
     padding-bottom: 5%;
   }
@@ -23,3 +21,13 @@ body{
   label {
     text-shadow: 2px 2px black;
   }
+  .flexbox {
+    display: flex;
+    flex-direction: row;
+  }
+  .flexbox img {
+    width: 60%;
+  }
+.flexbox .two img{
+      padding-left: 40%;
+}
