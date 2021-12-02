@@ -321,7 +321,7 @@ exports.createthread = function(uid,threadname){
                 connection2.connect(function(err){ 
                     if (err) throw err;
                     //console.log("["+threadname+"]");
-                    qstring = "create table " + threadname + " ( msgid int UNSIGNED not null auto_increment, sender int UNSIGNED, sendername char(16) character set utf8, sentat datetime, content varchar(10000) character set utf8, primary key(msgid));";
+                    qstring = "create table " + threadname + " ( msgid int UNSIGNED not null auto_increment, sendername char(16) character set utf8, sentat datetime, content varchar(10000) character set utf8, primary key(msgid));";
                     //console.log(threadname);
                     connection2.query(qstring, function(err, result){
                         //console.log("got here heheh");
@@ -372,7 +372,9 @@ exports.loadthread = async function(threadname,offset){
         connection.connect(function(err){ 
             if (err) {throw err};
 
-        qstring = "select * from "+threadname+" order by lastused asc limit 1000 offset " + offset + ";"; 
+           // console.log(threadname);
+           // console.log(offset);
+        qstring = "select * from "+threadname+" order by sentat asc limit 1000 offset " + offset + ";"; 
     
         connection.query(qstring, function(err, result){
             //console.log(result);
@@ -382,7 +384,8 @@ exports.loadthread = async function(threadname,offset){
     });
 });}
 
-exports.getthreadname = async function(tid){
+exports.getthreadname = getthreadname;
+ async function getthreadname(tid){
 
     var connection = mysql.createConnection({
         host: "localhost",
@@ -396,6 +399,7 @@ exports.getthreadname = async function(tid){
             if (err) {throw err};
 
         qstring = "select threadname from threads where tid = \'"+tid+"\';"; 
+        //console.log(tid);
     
         connection.query(qstring, function(err, result){
             //console.log(result);
@@ -404,6 +408,43 @@ exports.getthreadname = async function(tid){
         });   
     });
 });
+}
+
+exports.postmessage = async function(username,message, tid){
+
+    var connection = mysql.createConnection({
+        host: "localhost",
+        user: "root",
+        password: "uS:qwv?3btR!cdL",
+        database: "forum"
+    });
+
+    try{
+    threadname = await getthreadname(tid);
+
+    
+        return new Promise(resolve=>{
+            console.log("doing shit");
+            connection.connect(function(err){ 
+                if (err) {throw err};
+
+                try{
+                    //console.log(threadname);
+                qstring = "Insert into "+threadname[0].threadname+"(msgid,sendername,sentat,content) value(null,\""+username+"\",UTC_TIMESTAMP(), \""+message+"\");"; 
+                //console.log(tid);
+                }catch(e){console.log(e)}
+                console.log("doing shit");
+                connection.query(qstring, function(err, result){
+                //console.log(result);
+                resolve(result);
+                console.log(err);
+                    //do check here to see if to return function
+                }); 
+            });
+        });
+    
+    }catch(e){console.log(e)};
+
 }
 
 
@@ -550,8 +591,4 @@ function checkUsernameValid(username){
   }
   return returnvalue;
 };
-
-
-  
-
 */

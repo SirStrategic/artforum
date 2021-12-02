@@ -11,6 +11,7 @@ var fs = require('fs');
 //formidable
 //npm install -g node-gyp
 
+
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
@@ -25,6 +26,8 @@ process.on('uncaughtException', function(e) {
     console.log(e);
   });
 
+
+
 http.createServer(function (req, res){
     try{
     var parsedurl = url.parse(req.url, true);
@@ -33,14 +36,62 @@ http.createServer(function (req, res){
     //}
     var urlfilereq = "." + parsedurl.pathname;
     //
-    console.log("there was a request"); 
-    if (req.url == '/fileupload') {
+    //console.log("there was a request"); 
+    if (req.url == './fileupload' || req.url == '/fileupload') {
+        
         var form = new formidable.IncomingForm();
-        form.parse(req, function (err, fields, files) {
-          res.write('File uploaded');
+        let data = '';
+        req.on('data', chunk => {
+          data += chunk;
+        });
+        req.on('end', () => {
+            console.log(data);
+            
+            var authenticated = false;
+        
+            var requestdata = JSON.parse(data);
+
+            var credentials = threadloader.retrieveCredentials(requestdata.username);
+            credentials.then(result=>{
+                    
+            authenticated = bcrypt.compareSync(requestdata.password,result[0].hashed);
+                    
+            if(!authenticated){
+                return false;
+            }
+            //post message
+    
+            post = threadloader.postmessage(requestdata.username, requestdata.content, requestdata.tid)
+            
+            post.then(result=>{
+                res.end();
+            });
+
+            
+
+        });
+    });
+        
+        
+        /*form.parse(req, function (err, fields, files) {
+          res.write('File uploaded, go back to view thread');
           console.log("message posted");
+          console.log(req)
+          if (err) console.log(err);
+
+          var username = fields.usernamebox;
+          var password = fields.passwordbox;
+          var message  = fields.messagebox;
+          var tid      = fields.formidbox;
+          
+          
+          console.log(data);
+          console.log(username +" "+ password + " " + message+" " + tid);
+
           res.end();
-        }); //??????????????????????
+          
+        }); //??????????????????????*/
+    
 
     }else if(req.url == '/'){
         res.writeHead(302, {'Location': './forumIndex.html'});
@@ -272,13 +323,18 @@ http.createServer(function (req, res){
             //console.log(offset);
             
             try{
-            if(!(query.offset == undefined || query.offset == null)){
+                offset = parseInt(query.offset);//putting this here rather than below the if statment makes it work so idk irdk man
+            if((query.offset == undefined) || (query.offset == null)){ //why did I have ! there
                 offset = 0;
                 //console.log("asdddddddddd"+offset);
-            }}catch(e){console.log(e)};
+            }
+            
+        }catch(e){
+            offset = 0;
+        };
             //load 20 from offset if offset >0 set it to 0, I hope mysql will work out for larger values anyway
             //console.log("test");
-            offset = parseInt(query.offset);//IMPORTANT, PREVENT POSSIBLE SQL INJECTION ATTACK
+            //IMPORTANT, PREVENT POSSIBLE SQL INJECTION ATTACK
                 //HOPEFULLY MY USERNAME AND THREAD NAME CHECKING SYSTEMS AREN'T VULNERABLE, BECAUSE IF THIS IS THEY SHOULD BE TOO, BUT THIS SHOULDN'T BE ANYWAY 
                 //i assume the sql will just be in error
             if(offset < 0){
@@ -294,13 +350,16 @@ http.createServer(function (req, res){
                     
                 //let's hope js doesn't have out of range errors 
                 var resultstring = "";
+                try{
                 for(let i = 0; i < 20; i++){
                     if(result[i] == undefined || result[i] == null){
                         break;
                     }
                     resultstring += "<div onclick = \"loadthread(id)\" id = "+result[i].tid+">["+result[i].threadName+"]<br> last used:["+result[i].lastused+"]<br> created on:["+result[i].createdon+"]</div><br><br>";//i'm not fucked to find out their name too much stress on db
                 }
-
+                }catch(e){
+                    
+                }
                 //shit just found out variables defined without var or let become global shit shit SHIT
                 //time to scrub 400 lines of code
                 let threadloaderpage = `<html>
@@ -312,7 +371,7 @@ http.createServer(function (req, res){
                 <script>
                 function loadthread(id){
                     //opens link with thread
-                    window.location.replace("http://localhost:8080/threadviewer?=" + id);
+                    window.location.replace("http://localhost:8080/threadviewer?tid=" + id +"&offset=0");
                 }
 
                 function loadpage(){
@@ -333,7 +392,7 @@ http.createServer(function (req, res){
                     results:
                     <div id = "searchresults" style = "padding: 20px">
                         `+resultstring+`
-                    <label>offset:</label><br>
+                    <label>page offset:</label><br>
                     <button id = "loweroffset" onclick = "changevalue(-20)">previous 20</button> <!--don't display when offset =< 20 but make system failsafe anyway on both server and clientside-->
                     <input id = "offsetnumber" type="number" value = "0" /><!--it shouldn't crash anything if someone changed this to something other than number probably, i'll have to make sure of it-->
                     <button id = "loweroffset" onclick = "changevalue(20)">next 20</button><br>
@@ -353,40 +412,55 @@ http.createServer(function (req, res){
             //do not allow whitespace in table names nvm the thing just fails, hopefully not vulneralble to injection atatck of any kind
             var query = url.parse(req.url, true).query;
             var offset = 0;
-            
-            if(!(query.offset == undefined || query.offset == null)){
+            try{
+                offset = parseInt(query.offset);
+            if(query.offset == undefined || query.offset == null){
+                console.log("issue here 1");
                 res.write("Invalid thread id <br><br>Use following format: <ip>/threadviewer?=<threadid>")//IMPORTANT, PREVENT POSSIBLE SQL INJECTION ATTACK
                 //HOPEFULLY MY USERNAME AND THREAD NAME CHECKING SYSTEMS AREN'T VULNERABLE, BECAUSE IF THIS IS THEY SHOULD BE TOO, BUT THIS SHOULDN'T BE ANYWAY 
                 //i assume the sql will just be in error    
             }
-            offset = parseInt(query.offset);
+            
+            }catch(e){
+            offset = 0;
+            }
+            
             if(offset < 0){
                 offset = 0;
             }
             
             var tid = 0;
             
-            if(!(query.tid == undefined || query.tid == null)){
+            try{
+                tid = parseInt(query.tid);
+            if(query.tid == undefined || query.tid == null){
+                console.log("issue here 2");
                 res.write("Invalid thread id <br><br>Use following format: <ip>/threadviewer?=<threadid>")//IMPORTANT, PREVENT POSSIBLE SQL INJECTION ATTACK
                 //HOPEFULLY MY USERNAME AND THREAD NAME CHECKING SYSTEMS AREN'T VULNERABLE, BECAUSE IF THIS IS THEY SHOULD BE TOO, BUT THIS SHOULDN'T BE ANYWAY 
                 //i assume the sql will just be in error    
             }
-            tid = parseInt(query.tid);
+            
+        }catch(e){
+            tid = 0;
+        }
+            
             if(tid < 0){
                 tid = 0;
             }
             //hopefully they don't post too much and break it both serverside and with how much must be loaded, i'll use pages 
+            //console.log(tid);
             getnamepromise = threadloader.getthreadname(tid);
             getnamepromise.then(result=>{
 
-                threadloadpromise = threadloader.loadthread(result[0],offset);
+                threadloadpromise = threadloader.loadthread(result[0].threadname,offset);
+                //console.log(result[0].threadname);
                 threadloadpromise.then(result2=>{
                     var resultstring = "";
                     if(result2 == undefined || result2 == null){
                         resultstring = "Thread is empty"
                     }else{
                 for(let i = 0; i < 1000; i++){
-                    console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                    //console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
                     if(result2[i] == undefined || result2[i] == null){
                         break;
                     }//might be usless now
@@ -401,33 +475,24 @@ http.createServer(function (req, res){
                 <!--posting on thread gives thread id, username, password, message-->
                 <!--thread id used to look up thread name, then message inserted-->
 
-                <body style = "padding: 10px">
-                <script>
-                function loadthread(id){
-                    //opens link with thread
-                    window.location.replace("http://localhost:8080/threadviewer?=" + id);
-                }
-
-                function loadpage(){
-                    if (document.getElementById("offsetnumber").value == null ||  document.getElementById("offsetnumber").value == undefined){
-                        //window.location.replace("http://localhost:8080/threadloader?offset=0");
-                        console.log(window.location.href());
-                    }
-                    window.location.replace("http://localhost:8080/threadloader?offset="+document.getElementById("offsetnumber").value);
-                }
-
-                function changevalue(by){
-                    if (document.getElementById("offsetnumber").value == null ||  document.getElementById("offsetnumber").value == undefined){
-                        document.getElementById("offsetnumber").value = 0;
-                    }
-                    document.getElementById("offsetnumber").value = parseInt(document.getElementById("offsetnumber").value,10) + by;
-                }
-
-            </script>
-                    [`+result[0]+`]
+                <script src="threadjs.js"></script>
+                
+                <body style = "padding: 10px;" onload="addid()">
+                
+                    <div style="font-size:2em">[`+result[0].threadname+`]</div>
                     <div id = "searchresults" style = "padding: 20px">
-                       `+resultstring+`<br><br><br><br>
-                    <label>offset:</label><br>
+                       `+resultstring+`<br>
+                       
+                    <img src = "http://localhost:8080/indexImages/rainblin.gif" alt = "could not load element, contact server admin></img><br clear="all" /><br clear="all" /><br>
+        
+                        Username:<input type="text" placeholder = "Username" name = "usernamebox" id="usernamebox" maxlength = "16" required></input>    
+                        Password:<input placeholder = "Password" type="password" name = "passwordbox" id="passwordbox" maxlength = "512" required></input><br><br>
+                        Message:<textarea rows="8" cols="64" name = "messagebox" id="messagebox" maxlength = "10000" placeholder = "Message" required></textarea><br><br>
+                        <input name = "formidbox" id = "formidbox" type="hidden"></input>
+                        <button name = "psudosubmit" value="Submit" onclick="submitleform()">Submit</button>
+                    
+                    <img src = "http://localhost:8080/indexImages/rainblin.gif" alt = "could not load element, contact server admin></img><br clear="all" /><br clear="all" />
+                    <br><label>page offset:</label><br>
                     <button id = "loweroffset" onclick = "changevalue(-20)">previous 20</button> <!--don't display when offset =< 20 but make system failsafe anyway on both server and clientside-->
                     <input id = "offsetnumber" type="number" value = "0" /><!--it shouldn't crash anything if someone changed this to something other than number probably, i'll have to make sure of it-->
                     <button id = "loweroffset" onclick = "changevalue(20)">next 20</button><br>
@@ -436,7 +501,7 @@ http.createServer(function (req, res){
             </html>`;
 
             res.write(threadviewerpage);
-            console.log(threadviewerpage);
+            //console.log(threadviewerpage);
                 res.end()
             });
                 //res.end();
@@ -448,7 +513,10 @@ http.createServer(function (req, res){
         //IMPORTANT QUESTION: can these files be requested in any other way? 
          permittedpages=["./signup.html", "./forumIndex.html", "./ForumStyle.css", 
                         "./Index.html", "./galaryIndex.html", "./404image.png",
-                        "./createthread.html"]; //global
+                        "./createthread.html", "./indexImages/rainblin.gif", 
+                        "signup.css", "forum.css", 
+                        "createthread.css", "/createthread.css", "./createthread.css" ,
+                        "threadjs.js", "/threadjs.js","./threadjs.js"]; //global
                         //my having to include images means that they are requested through this, tha tis good, I can controll more like that
         //why does it want dot here but not above
         console.log("A client has requested: " + urlfilereq);
