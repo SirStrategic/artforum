@@ -511,12 +511,13 @@ http.createServer(function (req, res){
             }else{
         fs.readFile(urlfilereq, function (err, data) {
         //IMPORTANT QUESTION: can these files be requested in any other way? 
-         permittedpages=["./signup.html", "./forumIndex.html", "./ForumStyle.css", 
+         permittedpages=["./signup.html", "./forumIndex.html", "./ForumStyle.css", //yes i could think of some lookup table system to make thing way cleaner than shuffling files about but whatever
                         "./Index.html", "./galaryIndex.html", "./404image.png",
                         "./createthread.html", "./indexImages/rainblin.gif", 
-                        "signup.css", "forum.css", 
+                        "signup.css", "/signup.css","./signup.css","forum.css", 
                         "createthread.css", "/createthread.css", "./createthread.css" ,
-                        "threadjs.js", "/threadjs.js","./threadjs.js"]; //global
+                        "threadjs.js", "/threadjs.js","./threadjs.js", "/forum.css", "./forum.css", 
+                        "1Two Plate Productions Logo.png", "./Gallary/galaryIndex.html", "./Gallary/GalaryStyle.css"]; //global
                         //my having to include images means that they are requested through this, tha tis good, I can controll more like that
         //why does it want dot here but not above
         console.log("A client has requested: " + urlfilereq);
