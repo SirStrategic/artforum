@@ -553,7 +553,7 @@ http.createServer(function (req, res){
         //this isn't working hmm
     }
     //return res.end();
-}).listen(8080, 'localhost');
+}).listen(8080);
 
 function createuser(name, hashedpswrd){}; 
 //a form is upload with the hashed pasword and other data such 
