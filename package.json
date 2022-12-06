@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "formidable": "^2.0.1",
+    "formidable": "^2.1.1",
     "mysql": "^2.18.1",
     "bcrypt": "^5.0.1",
-    "body-parser": "^1.19.0"
+    "body-parser": "^1.20.1"
     
   },
   "name": "artforum",
